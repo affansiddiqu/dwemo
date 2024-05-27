@@ -1,0 +1,44 @@
+CREATE TABLE your_table (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    ...
+);
+
+ALTER TABLE your_table AUTO_INCREMENT = 1000;
+
+-- Drop the table if it already exists
+DROP TABLE IF EXISTS your_table;
+
+-- Create the table
+CREATE TABLE your_table (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    custom_id VARCHAR(10),
+    some_data VARCHAR(255)
+);
+
+-- Create the trigger
+DELIMITER //
+CREATE TRIGGER before_insert_your_table
+BEFORE INSERT ON your_table
+FOR EACH ROW
+BEGIN
+    DECLARE max_id INT;
+    DECLARE new_custom_id VARCHAR(10);
+
+    -- Find the maximum numeric part of the existing custom_ids
+    SELECT IFNULL(MAX(CAST(SUBSTRING(custom_id, 3) AS UNSIGNED)), 0) + 1 INTO max_id FROM your_table;
+
+    -- Generate the new custom_id with the prefix 'pi' and zero-padded number
+    SET new_custom_id = CONCAT('pi', LPAD(max_id, 5, '0'));
+
+    -- Assign the new custom_id to the new row
+    SET NEW.custom_id = new_custom_id;
+END;
+//
+DELIMITER ;
+
+-- Insert example data
+INSERT INTO your_table (some_data) VALUES ('example data 1');
+INSERT INTO your_table (some_data) VALUES ('example data 2');
+
+-- Verify the inserted data
+SELECT * FROM your_table;
